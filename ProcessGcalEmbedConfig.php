@@ -58,10 +58,6 @@ class ProcessGcalEmbedConfig extends ModuleConfig
                 'options'     => array(
                     '1' => $this->_('Sunday'),
                     '2' => $this->_('Monday'),
-                    //'3' => $this->_('Tuesday'),
-                    //'4' => $this->_('Wednesday'),
-                    //'5' => $this->_('Thursday'),
-                    //'6' => $this->_('Friday'),
                     '7' => $this->_('Saturday'),
                 ),
                 'value'       => '1',
