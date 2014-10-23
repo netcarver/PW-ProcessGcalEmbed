@@ -1,0 +1,91 @@
+<?php
+
+/**
+ * Module to add a calendar page to PW admin setup area.
+ */
+
+class ProcessGcalEmbed extends Process
+{
+    public static function getModuleInfo()
+    {
+        return array(
+            'title'     => __('Google Calendar Embed', __FILE__),
+            'summary'   => __('Embeds a Google Calendar in an Admin page', __FILE__),
+            'version'   => 1,
+            'permanent' => false,
+            'autoload'  => 'template=admin',
+            'singular'  => true,
+            'author'    => 'S. Dickinson, QBox.co',
+        );
+    }
+
+
+
+    public function ___execute()
+    {
+        $this->setFuel('processHeadline', $this->_('Calendar'));
+        return $this->renderCal();
+    }
+
+
+    public function renderCal()
+    {
+        if (!$this->src_email || $this->width <= 200 || $this->height <= 400) {
+            return "<p>Please supply the calendar's source email address and ensure its dimensions are greater than 100 pixels each.</p>";
+        }
+
+        /**
+         * Prepare settings for inclusion in the iframe url...
+         */
+        $sources = array();
+        $colours = array(
+            '2952A3',
+            '853104',
+            '865A5A',
+        );
+        $lines   = explode("\n", trim($this->src_email));
+        foreach ($lines as $i => $src) {
+            $src = trim($src);
+            if ('' == $src) {
+                continue;
+            }
+            $i = $i % count($colours);
+            $src = urlencode($src);
+            $sources[] = "src=$src&amp;color=%23{$colours[$i]}";
+        }
+        $src_url = implode('&amp;', $sources);
+        //$this->message("Sources [$src_url]");
+        $tz_url  = urlencode($this->tz);
+
+        $w_url = urlencode($this->width);
+        $h_url = urlencode($this->height);
+
+        $cal =<<<CAL
+<iframe src="https://www.google.com/calendar/embed?showTitle=0&amp;showPrint=0&amp;showTabs=0&amp;showCalendars=1&amp;showTz=1&amp;height=600&amp;wkst={$this->start_dow}&amp;bgcolor=%23FFFFFF&amp;{$src_url}&amp;ctz={$tz_url}" style="border-width:0" width="{$w_url}" height="{$h_url}" frameborder="0" scrolling="no"></iframe>
+CAL;
+
+        return $cal;
+    }
+
+
+
+    public function ___install()
+    {
+        parent::___install();
+
+        $p = new Page();
+        $p->template = $this->templates->get("admin");
+        $p->parent = $this->pages->get("template=admin, name=setup");
+        $p->title = 'Calendar';
+        $p->name  = __CLASS__;
+        $p->process = $this;
+        $p->save();
+    }
+
+
+    public function ___uninstall()
+    {
+        $p = $this->pages->get('template=admin, name=' . __CLASS__);
+        $p->delete();
+    }
+}
